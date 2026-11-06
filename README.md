@@ -38,9 +38,13 @@ python3 scripts/build_personas.py --clean_dir data --out_dir personas
 - 剧情对话：`SR_Talk_CH` 文本映射（19.6 万条台词，4413 个说话人）——体积与版权原因未随仓库分发，自备后放入 `data/textmap/`
 - 数据未随版本更新，如需最新版本内容请从数据站获取快照后替换 `data/` 重跑管线
 
+## 角色头像
+
+`data/icons/` 内置 84 张角色商店头像（约 11 MB），覆盖全部 80 份人设角色。文件名为数字角色 ID，与 `data/gd_Avatar.jsonl` 中该角色的 `Icon` 字段末段一致（如银狼 `Icon: avatarshopicon/Avatar/1221` → `data/icons/1221.png`）。可用 `python3 -c "import json; [print(o['name'], o['Icon'].split('/')[-1]) for o in map(json.loads, open('data/gd_Avatar.jsonl'))]"` 列出 ID 对照。
+
 ## 版权与免责声明
 
-- **角色文本（故事、语音、介绍）的著作权归 miHoYo / HoYoverse（COGNOSPHERE）所有。**
+- **角色文本（故事、语音、介绍）与图片素材（头像）的著作权归 miHoYo / HoYoverse（COGNOSPHERE）所有。**
 - 本仓库仅对官方公开资料做结构化整理与统计，**非官方产物，与 miHoYo/HoYoverse 无关**。
 - 仅供学习交流与社区二创，**禁止商用**；如需删档请提 issue，会在确认后移除。
 - 若构成侵权请通过 issue 联系，我们将及时处理。
