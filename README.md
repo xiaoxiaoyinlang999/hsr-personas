@@ -24,15 +24,19 @@
 `personas/` 下每个 `.md` 都是自包含档案。把「AI 角色扮演骨架」+ 你需要的段落贴进任意 LLM 的 system prompt，或配合角色扮演框架（如 AstrBot persona、SillyTavern 卡片）使用。
 
 ### 方式二：自己重新生成
+仓库 `data/` 自带最小数据集（角色故事、语音、wiki 卡、ID 映射，约 4.2 MB），clone 后直接跑：
+
 ```bash
-python3 scripts/build_personas.py --clean_dir <clean数据目录> --out_dir personas
+python3 scripts/build_personas.py --clean_dir data --out_dir personas
 ```
-输入数据格式见脚本头部注释（三个 jsonl/json：角色技能、wiki 卡、剧情对话文本映射）。
+
+`personas/` 中的「台词画像」段落由完整数据（含 30 MB 的剧情对话文本映射 `SR_Talk_CH.json`，未随仓库分发）生成；用自带数据重跑会得到缺该段落、其余完全一致的版本。需要台词画像时自备 `data/textmap/SR_Talk_CH.json`（说话人→台词的 JSON 对象，格式见脚本头部注释）再运行即可。
 
 ## 数据来源
 
-- 游戏数据：社区维护的星穹铁道数据站静态快照（Avatar 故事 / 语音 / wiki 卡字段）
-- 剧情对话：`SR_Talk_CH` 文本映射（19.6 万条台词，4413 个说话人）
+- 游戏数据：社区维护的星穹铁道数据站静态快照（Avatar 故事 / 语音 / wiki 卡字段），对应 `data/` 下的 jsonl
+- 剧情对话：`SR_Talk_CH` 文本映射（19.6 万条台词，4413 个说话人）——体积与版权原因未随仓库分发，自备后放入 `data/textmap/`
+- 数据未随版本更新，如需最新版本内容请从数据站获取快照后替换 `data/` 重跑管线
 
 ## 版权与免责声明
 

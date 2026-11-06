@@ -4,14 +4,16 @@
 build_personas.py — 从清洗后的崩坏：星穹铁道数据生成 AI 角色扮演人设档案。
 
 输入（clean/ 目录）：
-  gd_角色技能.jsonl   — 游戏数据：角色故事(Story) + 语音(archive_*)
-  角色.jsonl          — wiki 卡字段（称号/命途/介绍/卷首语/短信签名/CV…）
-  textmap/SR_Talk_CH.json — 剧情对话（说话人→台词），用于台词画像统计
+  gd_角色技能.jsonl   — 游戏数据：角色故事(Story) + 语音(archive_*)【必选】
+  角色.jsonl          — wiki 卡字段（称号/命途/介绍/卷首语/短信签名/CV…）【必选】
+  gd_Avatar.jsonl     — ID→{name, path, element, rarity, ver} 映射【必选】
+  textmap/SR_Talk_CH.json — 剧情对话（说话人→台词）【可选】缺失时跳过台词画像模块
 
 输出：personas/<角色名>.md（每角色一份完整人设）
 
 用法：
-  python3 build_personas.py --clean_dir <clean目录> --out_dir personas
+  python3 build_personas.py --clean_dir data --out_dir personas
+  （仓库 data/ 自带必选数据；textmap/SR_Talk_CH.json 可选，缺失时自动跳过台词画像）
 
 数据来源声明见 README.md。角色文本版权归 miHoYo/HoYoverse 所有。
 """
@@ -234,7 +236,7 @@ def build_persona(name, key, g, w, ts):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--clean_dir', default='clean')
+    p.add_argument('--clean_dir', default='data')
     p.add_argument('--out_dir', default='personas')
     args = p.parse_args()
 
@@ -249,7 +251,13 @@ def main():
             names[key] = n
     print(f'游戏角色 {len(roles)} 个，其中已解析名字 {len(names)} 个')
 
-    talk = talk_stats(os.path.join(args.clean_dir, 'textmap', 'SR_Talk_CH.json'), set(names.values()))
+    talks_path = os.path.join(args.clean_dir, 'textmap', 'SR_Talk_CH.json')
+    if os.path.exists(talks_path):
+        talk = talk_stats(talks_path, set(names.values()))
+    else:
+        talk = {}
+        print('[提示] 未找到 textmap/SR_Talk_CH.json —— 台词画像模块跳过，'
+              '其余模块不受影响（自备方式见 README「数据与复现」）')
 
     os.makedirs(args.out_dir, exist_ok=True)
     PATH_CN = {'Destruction':'毁灭','Hunt':'巡猎','Erudition':'智识','Harmony':'同谐','Nihility':'虚无','Preservation':'存护','Abundance':'丰饶','Remembrance':'记忆','Elation':'欢愉'}
