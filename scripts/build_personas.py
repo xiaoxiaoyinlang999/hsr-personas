@@ -252,23 +252,38 @@ def main():
     talk = talk_stats(os.path.join(args.clean_dir, 'textmap', 'SR_Talk_CH.json'), set(names.values()))
 
     os.makedirs(args.out_dir, exist_ok=True)
+    PATH_CN = {'Destruction':'毁灭','Hunt':'巡猎','Erudition':'智识','Harmony':'同谐','Nihility':'虚无','Preservation':'存护','Abundance':'丰饶','Remembrance':'记忆','Elation':'欢愉'}
+    # 重名分组：同名字多 ID → 按命途加后缀；同命途多 ID（男女主）只生成第一份
+    seen = set()
     made = 0
     for key, g in sorted(roles.items()):
         name = names.get(key)
         if not name or not g['stories'] or not g['voices']:
             print(f'[跳过] {key} {name or "（无名）"}：故事{len(g["stories"])} 语音{len(g["voices"])}')
             continue
-        w = wiki.get(name, {})
         av = avatars.get(key, {})
+        path_raw = av.get('path') or ''
+        same_name = [k for k, gg in roles.items() if (gg.get('name') or (avatars.get(k) or {}).get('name')) == name]
+        dup_group = len(same_name) > 1
+        dup_path_group = sum(1 for k in same_name if (avatars.get(k) or {}).get('path') == path_raw) > 1
+        sig = (name, path_raw)
+        if dup_group and sig in seen:
+            continue  # 同名同命途（男女主变体）内容一致，只取第一个
+        seen.add(sig)
+        file_name = name + (f' · {PATH_CN.get(path_raw, path_raw)}' if dup_group else '')
+        w = wiki.get(name, {})
         # wiki 缺失字段用游戏数据兜底
         if not w.get('介绍') and av.get('desc'): w['介绍'] = av['desc']
-        if not w.get('命途') and av.get('path'): w['命途'] = {'Destruction':'毁灭','Hunt':'巡猎','Erudition':'智识','Harmony':'同谐','Nihility':'虚无','Preservation':'存护','Abundance':'丰饶','Remembrance':'记忆','Elation':'欢愉'}.get(av['path'], av['path'])
+        if not w.get('命途') and path_raw: w['命途'] = PATH_CN.get(path_raw, path_raw)
         if not w.get('元素属性') and av.get('element'): w['元素属性'] = {'Phys':'物理','Fire':'火','Ice':'冰','Lightning':'雷','Wind':'风','Quantum':'量子','Imaginary':'虚数'}.get(av['element'], av['element'])
         if not w.get('实装版本') and av.get('ver'): w['实装版本'] = av['ver']
         if not w.get('稀有度') and av.get('rarity'): w['稀有度'] = f"{av['rarity']}星"
         ts = talk.get(name)
         md = build_persona(name, key, g, w, ts)
-        with open(os.path.join(args.out_dir, f'{name}.md'), 'w', encoding='utf-8') as f:
+        if dup_group:
+            # 标题也带形态
+            md = md.replace(f'# {name}（', f'# {name} · {PATH_CN.get(path_raw, path_raw)}（', 1)
+        with open(os.path.join(args.out_dir, f'{file_name}.md'), 'w', encoding='utf-8') as f:
             f.write(md)
         made += 1
     print(f'生成 {made} 份人设 → {args.out_dir}/')
